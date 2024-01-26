@@ -52,10 +52,6 @@ async def give_next_busses(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
     """scrapping"""
 
-    with open("soup.html", "w") as file:
-        file.write(soup.prettify())
-    #print(soup.find_all('div', class_='container'))
-
     for container in soup.find_all('span', class_='next-departure-features'):
         next_buses_affluence.append(container.find('span',class_="affluence-text hide-text-icon").text)
 
