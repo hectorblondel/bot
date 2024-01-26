@@ -1,1 +1,5 @@
 env.json
+env
+*__pycache__*
+*tempCodeRunnerFile.py
+test.py
