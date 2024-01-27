@@ -59,8 +59,6 @@ async def give_next_busses(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
     """scrapping"""
 
-    with open("soup.html", "r") as file:
-        soup = BeautifulSoup(file.read(), 'html.parser')
 
 
     with open("soup.html", "w") as file:
@@ -68,6 +66,7 @@ async def give_next_busses(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     #print(soup.find_all('div', class_='container'))
 
     i = 0
+
     for container in soup.find_all('span', class_='next-departure-features'):
         
         if i < number_bus_displayed :
