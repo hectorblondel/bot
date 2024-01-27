@@ -71,7 +71,12 @@ async def give_next_busses(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         
         if i < number_bus_displayed :
 
-            next_buses_affluence.append(container.find('span',class_="affluence-text hide-text-icon").text.strip().lower())
+            affluence_span = container.find_all('span',class_="affluence-text hide-text-icon")
+            if len(affluence_span) > 0 :
+                next_buses_affluence.append(", "+affluence_span[0].text.strip().lower())
+            else :
+                next_buses_affluence.append("")
+
 
             if len(container.find_all('abbr', title="moins d'une minute")) > 0 :
                 next_buses_min.append(0)
@@ -100,9 +105,10 @@ async def give_next_busses(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
     
     await update.message.reply_text(\
-        f"Premier bus dans {next_buses_min[0]} min à {next_buses_times[0]}, {next_buses_affluence[0]}.\n"\
-        + f"Deuxième bus dans {next_buses_min[1]} min à {next_buses_times[1]}, {next_buses_affluence[1]}.\n"\
-        + f"Troisième bus dans {next_buses_min[2]} min à {next_buses_times[2]}, {next_buses_affluence[2]} 🚌")
+        f"📢 Prochains départs F1 : Dufay ➡️ Isnauville :\n"\
+        + f"Premier bus dans {next_buses_min[0]} min à {next_buses_times[0]}{next_buses_affluence[0]}\n"\
+        + f"Deuxième bus dans {next_buses_min[1]} min à {next_buses_times[1]}{next_buses_affluence[1]}\n"\
+        + f"Troisième bus dans {next_buses_min[2]} min à {next_buses_times[2]}{next_buses_affluence[2]} 🚌")
     
 
 handlers = [MessageHandler(filters.Text("F1") | filters.Text("f1"), give_next_busses)]
