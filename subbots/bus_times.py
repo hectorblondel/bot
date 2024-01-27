@@ -2,12 +2,18 @@ from telegram import ForceReply, Update
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
 from telegram.ext.filters import MessageFilter
 
+import datetime
+
 import requests
 from bs4 import BeautifulSoup
 
 
 from datetime import datetime, timedelta
 import logging
+
+
+number_bus_displayed  = 3
+
 
 async def give_next_busses(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
@@ -48,26 +54,55 @@ async def give_next_busses(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
     next_buses_min = []
     next_buses_affluence = []
+    next_buses_times = []
 
 
     """scrapping"""
 
+
+
+    with open("soup.html", "w") as file:
+        file.write(soup.prettify())
+    #print(soup.find_all('div', class_='container'))
+
+    i = 0
+
     for container in soup.find_all('span', class_='next-departure-features'):
-        next_buses_affluence.append(container.find('span',class_="affluence-text hide-text-icon").text)
+        
+        if i < number_bus_displayed :
 
-        if len(container.find_all('abbr', title="moins d'une minute")) > 0 :
-            next_buses_min.append(0)
-        else :
-            minutes = int(container.find('span', class_="item-text bold").find('span')\
-                        .text.split('<')[0].strip().replace('min',''))
-            next_buses_min.append(minutes)
+            next_buses_affluence.append(container.find('span',class_="affluence-text hide-text-icon").text.strip().lower())
 
+            if len(container.find_all('abbr', title="moins d'une minute")) > 0 :
+                next_buses_min.append(0)
+                next_buses_times.append(datetime.now().strftime("%Hh%M"))
+
+            elif len(container.find_all('abbr', title="heure")) > 0 :
+                subcontainer = container.find('span', class_="item-text bold")
+                numbers = [num.strip() for num in container.get_text().split() if num.strip().isdigit()]
+
+                #the hour this bus will arrive
+                hours = numbers[0]
+                minutes = numbers[1]
+                bus_time = datetime.now().replace(hour=int(hours), minute=int(minutes))
+                next_buses_times.append(bus_time.strftime("%Hh%M"))
+                next_buses_min.append((bus_time - datetime.now()).seconds//60)
+
+            else :
+                minutes = int(container.find('span', class_="item-text bold").find('span')\
+                            .text.split('<')[0].strip().replace('min',''))
+                next_buses_min.append(minutes)
+                next_buses_times.append((datetime.now() + timedelta(minutes=minutes)).strftime("%Hh%M"))
+
+            i += 1
 
     """reply"""
 
-    await update.message.reply_text(f"premier bus dans {next_buses_min[0]} min, {next_buses_affluence[0]}\n"\
-        + f"deuxième bus dans {next_buses_min[1]} min, {next_buses_affluence[1]}\n"\
-        + f"troisième bus dans {next_buses_min[2]} min, {next_buses_affluence[2]} 🚌")
+    
+    await update.message.reply_text(\
+        f"Premier bus dans {next_buses_min[0]} min à {next_buses_times[0]}, {next_buses_affluence[0]}.\n"\
+        + f"Deuxième bus dans {next_buses_min[1]} min à {next_buses_times[1]}, {next_buses_affluence[1]}.\n"\
+        + f"Troisième bus dans {next_buses_min[2]} min à {next_buses_times[2]}, {next_buses_affluence[2]} 🚌")
     
 
 handlers = [MessageHandler(filters.Text("F1") | filters.Text("f1"), give_next_busses)]
