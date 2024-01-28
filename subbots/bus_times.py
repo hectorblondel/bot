@@ -101,14 +101,19 @@ async def give_next_busses(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
             i += 1
 
+
     """reply"""
 
-    
-    await update.message.reply_text(\
-        f"📢 Prochains départs F1 : Dufay ➡️ Isnauville :\n"\
-        + f"Premier bus dans {next_buses_min[0]} min à {next_buses_times[0]}{next_buses_affluence[0]}\n"\
-        + f"Deuxième bus dans {next_buses_min[1]} min à {next_buses_times[1]}{next_buses_affluence[1]}\n"\
-        + f"Troisième bus dans {next_buses_min[2]} min à {next_buses_times[2]}{next_buses_affluence[2]} 🚌")
+    if len(next_buses_min) == 0:
+        await update.message.reply_text("🌑 Service F1 terminé pour aujourd'hui 🌑")
+
+    else :
+        reply_message = f"📢 Prochains départs F1 : Dufay ➡️ Isnauville :"
+        for i in range(number_bus_displayed):
+            reply_message += f"\n{i+1} - {next_buses_min[i]} min à {next_buses_times[i]}{next_buses_affluence[i]}"
+        reply_message += " 🚌"
+
+        await update.message.reply_text(reply_message, parse_mode="HTML")
     
 
 handlers = [MessageHandler(filters.Text("F1") | filters.Text("f1"), give_next_busses)]
