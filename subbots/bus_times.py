@@ -1,18 +1,15 @@
 from telegram import ForceReply, Update
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
 from telegram.ext.filters import MessageFilter
-
 import datetime
-
 import requests
 from bs4 import BeautifulSoup
-
 
 from datetime import datetime, timedelta
 import logging
 
 
-number_bus_displayed  = 3
+max_number_bus_displayed  = 3
 
 
 async def give_next_busses(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -65,11 +62,11 @@ async def give_next_busses(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         file.write(soup.prettify())
     #print(soup.find_all('div', class_='container'))
 
-    i = 0
+    number_bus_displayed= 0
 
     for container in soup.find_all('span', class_='next-departure-features'):
         
-        if i < number_bus_displayed :
+        if number_bus_displayed< max_number_bus_displayed :
 
             affluence_span = container.find_all('span',class_="affluence-text hide-text-icon")
             if len(affluence_span) > 0 :
@@ -84,11 +81,18 @@ async def give_next_busses(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
             elif len(container.find_all('abbr', title="heure")) > 0 :
                 subcontainer = container.find('span', class_="item-text bold")
-                numbers = [num.strip() for num in container.get_text().split() if num.strip().isdigit()]
 
-                #the hour this bus will arrive
-                hours = numbers[0]
-                minutes = numbers[1]
+                #subcontainter will have this format :
+                """<span class="item-text bold">
+                    23
+                    <abbr title="heure">
+                    h
+                    </abbr>
+                    45
+                </span>"""
+
+                hours = int(subcontainer.text.split('<')[0].strip())
+                minutes = int(subcontainer.text.split('>')[3].strip())
                 bus_time = datetime.now().replace(hour=int(hours), minute=int(minutes))
                 next_buses_times.append(bus_time.strftime("%Hh%M"))
                 next_buses_min.append((bus_time - datetime.now()).seconds//60)
@@ -99,7 +103,7 @@ async def give_next_busses(update: Update, context: ContextTypes.DEFAULT_TYPE) -
                 next_buses_min.append(minutes)
                 next_buses_times.append((datetime.now() + timedelta(minutes=minutes)).strftime("%Hh%M"))
 
-            i += 1
+            number_bus_displayed+= 1
 
 
     """reply"""
