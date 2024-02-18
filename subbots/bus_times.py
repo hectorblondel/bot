@@ -90,9 +90,10 @@ async def give_next_busses(update: Update, context: ContextTypes.DEFAULT_TYPE) -
                     </abbr>
                     45
                 </span>"""
+                #but subcontainer.text will be : "23h45"
+            
 
-                hours = int(subcontainer.text.split('<')[0].strip())
-                minutes = int(subcontainer.text.split('>')[3].strip())
+                hours,minutes = int(subcontainer.text.split('h')[0]), int(subcontainer.text.split('h')[1])
                 bus_time = datetime.now().replace(hour=int(hours), minute=int(minutes))
                 next_buses_times.append(bus_time.strftime("%Hh%M"))
                 next_buses_min.append((bus_time - datetime.now()).seconds//60)
@@ -108,7 +109,7 @@ async def give_next_busses(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
     """reply"""
 
-    if len(next_buses_min) == 0:
+    if number_bus_displayed == 0:
         await update.message.reply_text("🌑 Service F1 terminé pour aujourd'hui 🌑")
 
     else :
